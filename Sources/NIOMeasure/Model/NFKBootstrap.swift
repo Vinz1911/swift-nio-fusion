@@ -41,6 +41,7 @@ internal struct NFKBootstrap: Sendable {
                 }
             }
         
+        print("[Server]: Started, listening on \(self.host):\(self.port)")
         try await withThrowingDiscardingTaskGroup { group in
             try await bootstrap.executeThenClose { inbound in
                 for try await channel in inbound {
@@ -81,7 +82,7 @@ private extension NFKBootstrap {
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     var data = buffer; guard let bytes = data.readDispatchData(length: data.readableBytes) else { return }
-                    try await framer.parse(data: bytes) { message in await completion(message, outbound) }
+                    try await framer.parse(data: bytes) { await completion($0, outbound) }
                 }
             }
         } catch {

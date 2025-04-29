@@ -70,7 +70,7 @@ private extension NFKFramer {
     /// - Returns: the extracted message as `Data`
     private func message(length: UInt32) -> Data? {
         guard buffer.count >= NFKConstants.control.rawValue else { return nil }
-        guard length > NFKConstants.control.rawValue else { return Data() }
+        guard length > NFKConstants.control.rawValue else { return .init() }
         return .init(buffer.subdata(in: NFKConstants.control.rawValue..<Int(length)))
     }
 }
