@@ -82,7 +82,7 @@ private extension NFKBootstrap {
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     var data = buffer; guard let bytes = data.readDispatchData(length: data.readableBytes) else { return }
-                    try await framer.parse(data: bytes) { await completion($0, outbound) }
+                    for message in try await framer.parse(data: bytes) { await completion(message, outbound) }
                 }
             }
         } catch {
