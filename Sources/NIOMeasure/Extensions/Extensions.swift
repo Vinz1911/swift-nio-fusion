@@ -6,9 +6,15 @@
 //
 
 import Foundation
+import Logging
 
 internal extension String {
+    /// Version number
+    static let version = "v1.0.0"
+    
+    /// Prompt logo
     static let logo = #"""
+    
      _____   _______________     ______  ___                                      
      ___  | / /___  _/_  __ \    ___   |/  /__________ ___________  _____________ 
      __   |/ / __  / _  / / /    __  /|_/ /_  _ \  __ `/_  ___/  / / /_  ___/  _ \
@@ -33,6 +39,11 @@ internal extension Data {
         guard !self.isEmpty else { return .zero }
         return UInt32(bigEndian: withUnsafeBytes { $0.load(as: UInt32.self) })
     }
+}
+
+internal extension Logger {
+    /// Singleton to access logger
+    static let shared = Logger(label: .init())
 }
 
 internal extension Int {

@@ -8,6 +8,7 @@
 import NIOCore
 import NIOPosix
 import Foundation
+import Logging
 
 @main
 internal struct NMServer: Sendable {
@@ -17,8 +18,11 @@ internal struct NMServer: Sendable {
     /// This is used as Bandwidth measurement server, it receives data or a requested amount of data
     /// and sends the appropriated value back to the client.
     static func main() async throws {
+        LoggingSystem.bootstrap(StreamLogHandler.standardError)
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        let server = NMBootstrap(host: "0.0.0.0", port: 7878, group: group)
+        let server = NMBootstrap(host: "127.0.0.1", port: 7878, group: group)
+        Logger.shared.notice(.init(stringLiteral: .logo))
+        Logger.shared.info(.init(stringLiteral: .version))
         try await server.run() { await handleMessage(server: server, message: $0, outbound: $1) }
     }
     

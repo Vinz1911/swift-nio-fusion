@@ -8,11 +8,13 @@
 import NIOCore
 import NIOPosix
 import Foundation
+import Logging
 
 internal struct NMBootstrap: Sendable {
     private let host: String
     private let port: Int
     private let group: MultiThreadedEventLoopGroup
+    private let tracker = NMAddressTracker()
     
     /// Create instance of `NMBootstrap`
     ///
@@ -33,20 +35,25 @@ internal struct NMBootstrap: Sendable {
         let bootstrap = try await ServerBootstrap(group: self.group)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .bind(host: self.host, port: self.port) { channel in
-                channel.eventLoop.makeCompletedFuture {
-                    let timer = channel.eventLoop.scheduleTask(in: .seconds(60)) { channel.close(promise: nil) }
-                    channel.closeFuture.whenComplete { _ in timer.cancel() }
-                    return try NIOAsyncChannel(
-                        wrappingChannelSynchronously: channel,
-                        configuration: NIOAsyncChannel.Configuration(inboundType: ByteBuffer.self, outboundType: ByteBuffer.self)
-                    )
-                }
+            channel.eventLoop.makeCompletedFuture {
+                let timer = channel.eventLoop.scheduleTask(in: .seconds(60)) { channel.close(promise: nil) }
+                channel.closeFuture.whenComplete { _ in timer.cancel() }
+                return try NIOAsyncChannel(
+                    wrappingChannelSynchronously: channel,
+                    configuration: NIOAsyncChannel.Configuration(inboundType: ByteBuffer.self, outboundType: ByteBuffer.self)
+                )
             }
-        print(String.logo)
-        print("[Info]: Started, listening on \(self.host):\(self.port)")
+        }
+        
+        Logger.shared.info("Listening on \(self.host):\(self.port)")
         try await withThrowingDiscardingTaskGroup { group in
             try await bootstrap.executeThenClose { inbound in
                 for try await channel in inbound {
+                    if let address = channel.channel.remoteAddress {
+                        if await tracker.log(address.ipAddress ?? "0.0.0.0") {
+                            Logger.shared.info("IP: \(address.ipAddress ?? "0.0.0.0"), Port: \(address.port ?? -1)")
+                        }
+                    }
                     group.addTask {
                         await connection(channel: channel) { await completion($0, $1) }
                     }
@@ -65,7 +72,7 @@ internal struct NMBootstrap: Sendable {
             let frame = try await NMFramer.create(message: message)
             try await outbound.write(.init(bytes: frame))
         } catch {
-            print("[Error]: \(error)")
+            Logger.shared.error("\(error)")
         }
     }
 }
@@ -81,9 +88,6 @@ private extension NMBootstrap {
     private func connection(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (NMMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
         do {
             let framer = NMFramer()
-            if let address = channel.channel.remoteAddress {
-                print("[Info]: IP: \(address.ipAddress ?? "0.0.0.0"), Port: \(address.port ?? -1)")
-            }
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     var data = buffer; guard let bytes = data.readDispatchData(length: data.readableBytes) else { return }
@@ -94,7 +98,7 @@ private extension NMBootstrap {
             await framer.reset()
         } catch {
             if let error = error as? IOError, error.errnoCode != ECONNRESET {
-                print("[Error]: \(error)")
+                Logger.shared.error("\(error)")
             }
         }
     }
