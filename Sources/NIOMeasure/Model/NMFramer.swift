@@ -18,9 +18,8 @@ internal actor NMFramer: Sendable {
     /// The protocol's overhead per message is only `0x5` bytes, resulting in high performance.
     ///
     /// This protocol is based on a standardized Type-Length-Value Design Scheme.
-    internal init() {
-        self.buffer = .empty
-    }
+    internal init() { self.buffer = .empty }
+    deinit { self.buffer = .empty }
     
     /// Clear the message buffer
     ///

@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "6DCE5ADB-A357-4EC0-8D9C-E18666654851",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "NIOMeasure",
+      "name" : "NIOMeasure"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "NIOMeasureTests",
+        "name" : "NIOMeasureTests"
+      }
+    }
+  ],
+  "version" : 1
+}

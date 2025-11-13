@@ -14,7 +14,7 @@ internal struct NMBootstrap: Sendable {
     private let host: String
     private let port: Int
     private let group: MultiThreadedEventLoopGroup
-    private let tracker = NMAddressTracker()
+    private let tracker = NMTracker()
     
     /// Create instance of `NMBootstrap`
     ///
@@ -95,9 +95,9 @@ private extension NMBootstrap {
                 }
             }
             channel.channel.flush()
-            await framer.reset()
         } catch {
-            if let error = error as? IOError, error.errnoCode != ECONNRESET {
+            guard let error = error as? IOError else { return }
+            if error.errnoCode != ECONNRESET, error.errnoCode != EPIPE, error.errnoCode != EBADF {
                 Logger.shared.error("\(error)")
             }
         }

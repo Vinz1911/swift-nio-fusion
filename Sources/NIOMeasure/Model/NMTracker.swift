@@ -1,5 +1,5 @@
 //
-//  NMAddressTracker.swift
+//  NMTracker.swift
 //  NIOMeasure
 //
 //  Created by Vinzenz Weist on 12.11.25.
@@ -7,11 +7,11 @@
 
 import Foundation
 
-actor NMAddressTracker {
+actor NMTracker {
     private var addresses: [String: Date] = [:]
     private let expiration: TimeInterval
     
-    /// Create instance of `NMAddressTracker`
+    /// Create instance of `NMTracker`
     ///
     /// - Parameter expiration: reset interval
     init(expiration: TimeInterval = 60) {
