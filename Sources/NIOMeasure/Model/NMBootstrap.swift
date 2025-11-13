@@ -88,6 +88,7 @@ private extension NMBootstrap {
     private func connection(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (NMMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
         do {
             let framer = NMFramer()
+            defer { Task { await framer.reset() } }
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     var data = buffer; guard let bytes = data.readDispatchData(length: data.readableBytes) else { return }
