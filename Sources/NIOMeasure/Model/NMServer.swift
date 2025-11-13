@@ -43,6 +43,7 @@ internal struct NMServer: Sendable {
         let server = NMBootstrap(host: "0.0.0.0", port: 7878, group: group)
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
+        Logger.shared.info("System core count: \(System.coreCount)")
         try await server.run() { await handleMessage(server: server, message: $0, outbound: $1) }
     }
     

@@ -32,9 +32,14 @@ internal struct NMBootstrap: Sendable {
     ///
     /// - Parameter completion: contains callback with parsed data and outbound writer.
     internal func run(_ completion: @escaping @Sendable (NMMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws {
-        let bootstrap = try await ServerBootstrap(group: self.group)
+        let bootstrap = ServerBootstrap(group: self.group)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
-            .bind(host: self.host, port: self.port) { channel in
+            .serverChannelOption(.backlog, value: 256)
+            .childChannelOption(.socketOption(.tcp_nodelay), value: 1)
+            .childChannelOption(.maxMessagesPerRead, value: 16)
+            .childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
+        
+        let channel = try await bootstrap.bind(host: self.host, port: self.port) { channel in
             channel.eventLoop.makeCompletedFuture {
                 let timer = channel.eventLoop.scheduleTask(in: .seconds(60)) { channel.close(promise: nil) }
                 channel.closeFuture.whenComplete { _ in timer.cancel() }
@@ -47,7 +52,7 @@ internal struct NMBootstrap: Sendable {
         
         Logger.shared.info("Listening on \(self.host):\(self.port)")
         try await withThrowingDiscardingTaskGroup { group in
-            try await bootstrap.executeThenClose { inbound in
+            try await channel.executeThenClose { inbound in
                 for try await channel in inbound {
                     if let address = channel.channel.remoteAddress {
                         if await tracker.log(address.ipAddress ?? "0.0.0.0") {

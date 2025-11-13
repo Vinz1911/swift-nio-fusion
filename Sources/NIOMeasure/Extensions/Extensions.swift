@@ -10,7 +10,7 @@ import Logging
 
 internal extension String {
     /// Version number
-    static let version = "v1.0.0"
+    static let version = "v1.0.1"
     
     /// Prompt logo
     static let logo = #"""
