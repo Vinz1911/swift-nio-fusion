@@ -43,11 +43,12 @@ internal actor FusionFramer: FusionFramerProtocol, Sendable {
         guard buffer.readableBytes >= FusionConstants.header.rawValue, buffer.readableBytes >= length else { return .init() }
         while buffer.readableBytes >= length && length != .zero {
             guard let opcode = buffer.getInteger(at: buffer.readerIndex, as: UInt8.self) else { throw FusionFramerError.parsingFailed }
+            guard let bytes = buffer.extractPayload(length: length) else { throw FusionFramerError.parsingFailed }
             
             switch opcode {
-            case FusionOpcodes.binary.rawValue: if let message = buffer.extractBytes(length: length) { messages.append(ByteBuffer(bytes: message)) }
-            case FusionOpcodes.ping.rawValue: if let message = buffer.extractBytes(length: length) { messages.append(UInt16(message.count)) }
-            case FusionOpcodes.text.rawValue: if let message = buffer.extractString(length: length) { messages.append(message) }
+            case FusionOpcodes.binary.rawValue: messages.append(ByteBuffer(bytes: bytes))
+            case FusionOpcodes.ping.rawValue: messages.append(UInt16(bytes.count))
+            case FusionOpcodes.text.rawValue: messages.append(String(bytes: bytes, encoding: .utf8) ?? .init())
             default: throw FusionFramerError.unexpectedOpcode }
             
             if buffer.readableBytes <= Int(length) { buffer.clear() } else { buffer.moveReaderIndex(forwardBy: Int(length)); buffer.discardReadBytes() }

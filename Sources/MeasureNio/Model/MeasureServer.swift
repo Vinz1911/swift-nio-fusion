@@ -39,18 +39,18 @@ internal struct MeasureServer: Sendable {
         
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        let server = MeasureBootstrap(host: "0.0.0.0", port: 7878, group: group)
+        let server = try MeasureBootstrap(host: "127.0.0.1", port: 7878, group: group)
         
-        await logStartup()
+        await startup()
         try await server.run() {
-            await handleMessage(server: server, message: $0, outbound: $1)
+            await handler(server: server, message: $0, outbound: $1)
         }
     }
     
     /// Log startup
     ///
     /// Show logo and other information
-    private static func logStartup() async -> Void {
+    private static func startup() async -> Void {
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
         Logger.shared.info("System core count: \(System.coreCount)")
@@ -62,8 +62,8 @@ internal struct MeasureServer: Sendable {
     ///   - server: the server `MeasureBootstrap`
     ///   - message: the received `FusionMessage`
     ///   - outbound: the outbound channel writer `NIOAsyncChannelOutboundWriter`
-    private static func handleMessage(server: MeasureBootstrap, message: FusionMessage, outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void {
-        if let message = message as? String { await server.send(ByteBuffer(bytes: Array<UInt8>(repeating: .zero, count: min(max(Int(message) ?? .zero, Int.frameMin), Int.frameMax))), outbound) }
+    private static func handler(server: MeasureBootstrap, message: FusionMessage, outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void {
+        if let message = message as? String { await server.send(ByteBuffer(bytes: Array<UInt8>(repeating: .zero, count: min(max(Int(message) ?? .zero, Int.minimum), Int.maximum))), outbound) }
         if let message = message as? ByteBuffer { await server.send("\(message.readableBytes)", outbound) }
         if let message = message as? UInt16 { await server.send(message, outbound) }
     }

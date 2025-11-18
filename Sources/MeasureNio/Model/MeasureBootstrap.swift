@@ -21,10 +21,9 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
     ///   - host: the host address as `String`
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
-    internal init(host: String, port: Int, group: MultiThreadedEventLoopGroup) {
-        self.host = host
-        self.port = port
-        self.group = group
+    internal init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws {
+        if host.isEmpty { throw(MeasureBootstrapError.missingHost) }; if port == .zero { throw(MeasureBootstrapError.missingPort) }
+        self.host = host; self.port = port; self.group = group
     }
     
     /// Starts the `MeasureBootstrap` and binds the server to port and address

@@ -41,10 +41,10 @@ internal extension Logger {
 
 internal extension Int {
     /// The minimum buffer size
-    static var frameMin: Self { 0x4000 }
+    static var minimum: Self { 0x1 }
     
     /// The maximum buffer size
-    static var frameMax: Self { 0x400000 }
+    static var maximum: Self { 0x400000 }
 }
 
 internal extension Int32 {
@@ -69,22 +69,14 @@ internal extension Numeric where Self: ExpressibleByIntegerLiteral {
     static var one: Self { 1 }
 }
 
-// MARK: - Byte Buffer -
+// MARK: - ByteBuffer -
 
 internal extension ByteBuffer {
     /// Extract `[UInt8]` from `ByteBuffer`
     ///
     /// - Parameter length: the amount of bytes to extract
     /// - Returns: the extracted bytes as `[UInt8]`
-    func extractBytes(length: UInt32) -> [UInt8]? {
+    func extractPayload(length: UInt32) -> [UInt8]? {
         self.getBytes(at: FusionConstants.header.rawValue, length: Int(length) - FusionConstants.header.rawValue)
-    }
-    
-    /// Extract `String` from `ByteBuffer`
-    ///
-    /// - Parameter length: the amount of bytes to extract
-    /// - Returns: the extracted bytes as `String`
-    func extractString(length: UInt32) -> String? {
-        self.getString(at: FusionConstants.header.rawValue, length: Int(length) - FusionConstants.header.rawValue)
     }
 }
