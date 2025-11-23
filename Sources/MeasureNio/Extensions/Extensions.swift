@@ -24,7 +24,7 @@ internal extension String {
         /_/ |_/  /___/  \____/      /_/  /_/  \___/\__,_/ /____/ \__,_/ /_/    \___/ 
     +-----------------------------------------------------------------------------------+
     | High-performance measurement engine server based on the Fusion Framing Protocol.  |
-    | Supports inbound and outbound connection speed measurement, including RTT.        |
+    | Supports inbound and outbound channel speed measurement, including RTT.           |
     | More information can be found at: https://weist.org                               |
     +-----------------------------------------------------------------------------------+
     """#

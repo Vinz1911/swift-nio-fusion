@@ -56,7 +56,7 @@ internal struct MeasureServer: Sendable {
         Logger.shared.info("System core count: \(System.coreCount)")
     }
     
-    /// Server connection handler
+    /// Server channel handler
     ///
     /// - Parameters:
     ///   - server: the server `MeasureBootstrap`

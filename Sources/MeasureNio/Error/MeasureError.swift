@@ -7,16 +7,16 @@
 
 // MARK: - Measure Bootstrap Error -
 
-/// The `FusionConnectionError` specific errors
+/// The `MeasureBootstrapError` specific errors
 @frozen
 public enum MeasureBootstrapError: Error, Sendable {
-    case missingHost
-    case missingPort
+    case invalidHostName
+    case invalidPortNumber
     
     public var description: String {
         switch self {
-        case .missingHost: return "missing host"
-        case .missingPort: return "missing port" }
+        case .invalidHostName: return "host name is invalid, failed to create instance"
+        case .invalidPortNumber: return "port number is invalid, failed to create instance" }
     }
 }
 

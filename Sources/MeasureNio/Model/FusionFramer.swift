@@ -53,7 +53,6 @@ internal actor FusionFramer: FusionFramerProtocol, Sendable {
             
             if buffer.readableBytes <= Int(length) { buffer.clear() } else { buffer.moveReaderIndex(forwardBy: Int(length)); buffer.discardReadBytes() }
             if let extracted = buffer.getInteger(at: buffer.readerIndex + .one, endianness: .big, as: UInt32.self) { length = extracted }
-        }
-        return messages
+        }; return messages
     }
 }

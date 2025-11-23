@@ -22,7 +22,7 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
     internal init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws {
-        if host.isEmpty { throw(MeasureBootstrapError.missingHost) }; if port == .zero { throw(MeasureBootstrapError.missingPort) }
+        if host.isEmpty { throw(MeasureBootstrapError.invalidHostName) }; if port == .zero { throw(MeasureBootstrapError.invalidPortNumber) }
         self.host = host; self.port = port; self.group = group
     }
     
@@ -57,7 +57,7 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
                         }
                     }
                     group.addTask {
-                        await connection(channel: channel) { await completion($0, $1) }
+                        await addChannel(channel: channel) { await completion($0, $1) }
                     }
                 }
             }
@@ -84,12 +84,12 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
 // MARK: - Private API -
 
 private extension MeasureBootstrap {
-    /// Connection handler for each individual connection
+    /// Add handler for each individual channel
     ///
     /// - Parameters:
     ///   - channel: the `NIOAsyncChannel`
     ///   - completion: the parsed `FusionMessage` and `NIOAsyncChannelOutboundWriter`
-    private func connection(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
+    private func addChannel(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
         do {
             let framer = FusionFramer()
             defer { Task { await framer.reset() } }
