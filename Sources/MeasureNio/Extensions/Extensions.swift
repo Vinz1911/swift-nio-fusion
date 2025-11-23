@@ -12,7 +12,7 @@ import NIOCore
 
 internal extension String {
     /// Version number
-    static let version = "v1.2.0"
+    static let version = "v1.3.0"
     
     /// Prompt logo
     static let logo = #"""

@@ -41,19 +41,13 @@ internal struct MeasureServer: Sendable {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         let server = try MeasureBootstrap(host: "0.0.0.0", port: 7878, group: group)
         
-        await startup()
-        try await server.run() {
-            await handler(server: server, message: $0, outbound: $1)
-        }
-    }
-    
-    /// Log startup
-    ///
-    /// Show logo and other information
-    private static func startup() async -> Void {
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
         Logger.shared.info("System core count: \(System.coreCount)")
+        
+        try await server.run() { message, outbound in
+            await handler(server: server, message: message, outbound: outbound)
+        }
     }
     
     /// Server channel handler
