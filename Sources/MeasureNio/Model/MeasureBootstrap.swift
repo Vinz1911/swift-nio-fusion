@@ -3,13 +3,14 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 13.04.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import NIOCore
 import NIOPosix
 import Logging
 
-internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
+struct MeasureBootstrap: MeasureBootstrapProtocol {
     private let host: String
     private let port: Int
     private let group: MultiThreadedEventLoopGroup
@@ -21,7 +22,7 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
     ///   - host: the host address as `String`
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
-    internal init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws {
+    init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws {
         if host.isEmpty { throw(MeasureBootstrapError.invalidHostName) }; if port == .zero { throw(MeasureBootstrapError.invalidPortNumber) }
         self.host = host; self.port = port; self.group = group
     }
@@ -29,12 +30,12 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
     /// Starts the `MeasureBootstrap` and binds the server to port and address
     ///
     /// - Parameter completion: completion block with parsed `FusionMessage` and the outbound writer
-    internal func run(_ completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws {
+    func run(_ completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws {
         let bootstrap = ServerBootstrap(group: self.group)
-            .serverChannelOption(.socketOption(.so_reuseaddr), value: .one)
+            .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .serverChannelOption(.backlog, value: .backlogMax)
-            .childChannelOption(.socketOption(.tcp_nodelay), value: .one)
-            .childChannelOption(.maxMessagesPerRead, value: .messageMax)
+            .childChannelOption(.socketOption(.tcp_nodelay), value: 1)
+            // .childChannelOption(.maxMessagesPerRead, value: .messageMax)
         
         let channel = try await bootstrap.bind(host: self.host, port: self.port) { channel in
             channel.eventLoop.makeCompletedFuture {
@@ -69,8 +70,9 @@ internal struct MeasureBootstrap: MeasureBootstrapProtocol, Sendable {
     /// - Parameters:
     ///   - message: the `FusionMessage` to send
     ///   - outbound: the outbound channel `NIOAsyncChannelOutboundWriter`
-    internal func send(_ message: FusionMessage, _ outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async {
+    func send(_ message: FusionMessage, _ outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async {
         do {
+            guard let message = message as? FusionFrame else { return }
             let frame = try await FusionFramer.create(message: message)
             try await outbound.write(frame)
         } catch {
@@ -92,10 +94,10 @@ private extension MeasureBootstrap {
     private func addChannel(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
         do {
             let framer = FusionFramer()
-            defer { Task { await framer.reset() } }
+            defer { Task { await framer.clear() } }
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
-                    var mutable = buffer; let messages = try await framer.parse(data: &mutable)
+                    let messages = try await framer.parse(data: buffer)
                     for message in messages { await completion(message, outbound) }
                 }
             }

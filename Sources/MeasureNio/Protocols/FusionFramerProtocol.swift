@@ -3,11 +3,12 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 15.11.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import NIOCore
 
-internal protocol FusionFramerProtocol: Sendable {
+protocol FusionFramerProtocol: Sendable {
     /// Creates an instance of `FusionFramer`.
     ///
     /// The `FusionFramer` implements the **Fusion Framing Protocol (FFP)** —
@@ -34,17 +35,17 @@ internal protocol FusionFramerProtocol: Sendable {
     /// Clear the message buffer
     ///
     /// Current message buffer will be cleared
-    func reset() async -> Void
+    func clear() async -> Void
     
     /// Create a `FusionMessage` conform frame
     ///
     /// - Parameter message: generic type which conforms to `FusionMessage`
     /// - Returns: the message frame as `ByteBuffer`
-    static func create<T: FusionMessage>(message: T) async throws -> ByteBuffer
+    static func create<T: FusionFrame>(message: T) async throws -> ByteBuffer
     
     /// Parse a `FusionMessage` conform frame
     ///
     /// - Parameter data: pointer to the `ByteBuffer` which holds the `FusionMessage`
     /// - Returns: a collection of `FusionMessage`s
-    func parse(data: inout ByteBuffer) async throws -> [FusionMessage]
+    func parse(data: ByteBuffer) async throws -> [FusionFrame]
 }

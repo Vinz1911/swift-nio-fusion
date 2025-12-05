@@ -3,6 +3,7 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 17.04.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import Logging
@@ -10,9 +11,9 @@ import NIOCore
 
 // MARK: - String -
 
-internal extension String {
+extension String {
     /// Version number
-    static let version = "v1.3.0"
+    static let version = "v1.4.0"
     
     /// Prompt logo
     static let logo = #"""
@@ -32,51 +33,53 @@ internal extension String {
 
 // MARK: - Logger -
 
-internal extension Logger {
+extension Logger {
     /// Singleton to access logger
     static let shared = Logger(label: .init())
 }
 
 // MARK: - Int -
 
-internal extension Int {
-    /// The minimum buffer size
-    static var minimum: Self { 0x1 }
-    
-    /// The maximum buffer size
-    static var maximum: Self { 0x400000 }
-}
-
-internal extension Int32 {
+extension Int32 {
     /// The maximum backlog
     static var backlogMax: Self { 256 }
 }
 
-internal extension Int64 {
+extension Int64 {
     /// The channel timeout
     static var timeout: Self { 90 }
 }
 
-internal extension UInt {
+extension UInt {
     /// The maximum messages
     static var messageMax: Self { 16 }
 }
 
-// MARK: - Numeric -
-
-internal extension Numeric where Self: ExpressibleByIntegerLiteral {
-    /// One is the identity element
-    static var one: Self { 1 }
-}
-
 // MARK: - ByteBuffer -
 
-internal extension ByteBuffer {
-    /// Extract `[UInt8]` from `ByteBuffer`
+extension ByteBuffer {
+    /// Extract `UInt32` from payload
+    ///
+    /// - Returns: the extracted length as `UInt32
+    func length(at index: Int = .zero) -> UInt32? {
+        return self.getInteger(at: index + 1, endianness: .big, as: UInt32.self)
+    }
+    
+    /// Extract from `ByteBuffer` from payload
     ///
     /// - Parameter length: the amount of bytes to extract
-    /// - Returns: the extracted bytes as `[UInt8]`
-    func extractPayload(length: UInt32) -> [UInt8]? {
-        self.getBytes(at: FusionConstants.header.rawValue, length: Int(length) - FusionConstants.header.rawValue)
+    /// - Returns: the extracted bytes as `ByteBuffer`
+    func payload(length: UInt32) -> ByteBuffer? {
+        return self.getSlice(at: FusionPacket.header.rawValue, length: Int(length) - FusionPacket.header.rawValue)
+    }
+    
+    /// Decode a `FusionMessage` as `FusionFrame`
+    ///
+    /// - Parameters:
+    ///   - opcode: the `FusionOpcode`
+    /// - Returns: the `FusionMessage`
+    func decode(with opcode: UInt8) -> FusionFrame? {
+        guard let opcode = FusionOpcode(rawValue: opcode) else { return nil }
+        switch opcode { case .string: return String.decode(from: self) case .data: return ByteBuffer.decode(from: self) case .uint16: return UInt16.decode(from: self) }
     }
 }

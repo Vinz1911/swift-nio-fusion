@@ -3,12 +3,13 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 15.11.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import NIOCore
 import NIOPosix
 
-internal protocol MeasureBootstrapProtocol: Sendable {
+protocol MeasureBootstrapProtocol: Sendable {
     /// Create instance of `MeasureBootstrap`
     ///
     /// - Parameters:

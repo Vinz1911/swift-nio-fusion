@@ -3,11 +3,12 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 15.11.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import Foundation
 
-internal protocol MeasureTrackerProtocol: Sendable {
+protocol MeasureTrackerProtocol: Sendable {
     /// Create instance of `MeasureTracker`
     ///
     /// - Parameter expiration: reset interval

@@ -3,6 +3,7 @@
 //  MeasureNio
 //
 //  Created by Vinzenz Weist on 17.04.25.
+//  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
 import NIOCore
@@ -26,7 +27,7 @@ func config_malloc() {
 #endif
 
 @main
-internal struct MeasureServer: Sendable {
+struct MeasureServer: Sendable {
     /// The `main` entry point.
     ///
     /// Start the `MeasureServer` and receive data.
@@ -39,7 +40,7 @@ internal struct MeasureServer: Sendable {
         
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
         let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        let server = try MeasureBootstrap(host: "0.0.0.0", port: 7878, group: group)
+        let server = try MeasureBootstrap(host: "127.0.0.1", port: 7878, group: group)
         
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
@@ -57,7 +58,7 @@ internal struct MeasureServer: Sendable {
     ///   - message: the received `FusionMessage`
     ///   - outbound: the outbound channel writer `NIOAsyncChannelOutboundWriter`
     private static func handler(server: MeasureBootstrap, message: FusionMessage, outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void {
-        if let message = message as? String { await server.send(ByteBuffer(bytes: Array<UInt8>(repeating: .zero, count: min(max(Int(message) ?? .zero, Int.minimum), Int.maximum))), outbound) }
+        if let message = message as? String { await server.send(ByteBuffer(repeating: .zero, count: min(max(Int(message) ?? .zero, 0x1), 0x400000)), outbound) }
         if let message = message as? ByteBuffer { await server.send("\(message.readableBytes)", outbound) }
         if let message = message as? UInt16 { await server.send(message, outbound) }
     }
