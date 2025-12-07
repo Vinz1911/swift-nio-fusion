@@ -35,7 +35,7 @@ struct MeasureBootstrap: MeasureBootstrapProtocol {
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .serverChannelOption(.backlog, value: .backlogMax)
             .childChannelOption(.socketOption(.tcp_nodelay), value: 1)
-            // .childChannelOption(.maxMessagesPerRead, value: .messageMax)
+            .childChannelOption(.maxMessagesPerRead, value: .messageMax)
         
         let channel = try await bootstrap.bind(host: self.host, port: self.port) { channel in
             channel.eventLoop.makeCompletedFuture {

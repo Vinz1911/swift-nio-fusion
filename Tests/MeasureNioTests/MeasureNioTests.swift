@@ -16,11 +16,11 @@ struct MeasureNioTests {
         var bufferRaw = try await FusionFramer.create(message: messageRaw)
         var bufferPing = try await FusionFramer.create(message: messagePing)
         
-        buffer.writeBuffer(&bufferText)
-        buffer.writeBuffer(&bufferRaw)
-        buffer.writeBuffer(&bufferPing)
+        buffer.writeImmutableBuffer(bufferText)
+        buffer.writeImmutableBuffer(bufferRaw)
+        buffer.writeImmutableBuffer(bufferPing)
         
-        for message in try await framer.parse(data: &buffer) {
+        for message in try await framer.parse(data: buffer) {
             if let message = message as? String { #expect(message == messageText) }
             if let message = message as? ByteBuffer { #expect(message.readableBytes == messageRaw.readableBytes) }
             if let message = message as? UInt16 { #expect(message == messagePing) }

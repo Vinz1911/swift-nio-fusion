@@ -38,7 +38,6 @@ actor FusionFramer: FusionFramerProtocol {
             guard let opcode = buffer.getInteger(at: buffer.readerIndex, as: UInt8.self) else { throw FusionFramerError.parsingFailed }
             guard let payload = buffer.payload(length: length) else { throw FusionFramerError.parsingFailed }
             guard let message = payload.decode(with: opcode) else { throw FusionFramerError.parsingFailed }
-            
             if buffer.readableBytes >= length { buffer.moveReaderIndex(forwardBy: Int(length)); buffer.discardReadBytes() }
             if let index = buffer.length(at: buffer.readerIndex) { length = index }; messages.append(message)
         }
