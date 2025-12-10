@@ -41,7 +41,7 @@ protocol FusionFramerProtocol: Sendable {
     ///
     /// - Parameter message: generic type which conforms to `FusionMessage`
     /// - Returns: the message frame as `ByteBuffer`
-    static func create<T: FusionFrame>(message: T) async throws -> ByteBuffer
+    static nonisolated func create<T: FusionFrame>(message: T) throws -> ByteBuffer
     
     /// Parse a `FusionMessage` conform frame
     ///

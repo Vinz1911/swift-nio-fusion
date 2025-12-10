@@ -16,7 +16,7 @@ protocol MeasureBootstrapProtocol: Sendable {
     ///   - host: the host address as `String`
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
-    init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws
+    init(host: String, port: UInt16, group: MultiThreadedEventLoopGroup) throws
     
     /// Starts the `MeasureBootstrap` and binds the server to port and address
     ///

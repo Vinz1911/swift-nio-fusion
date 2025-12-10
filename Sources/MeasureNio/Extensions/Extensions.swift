@@ -65,21 +65,15 @@ extension ByteBuffer {
         return self.getInteger(at: index + 1, endianness: .big, as: UInt32.self)
     }
     
-    /// Extract from `ByteBuffer` from payload
-    ///
-    /// - Parameter length: the amount of bytes to extract
-    /// - Returns: the extracted bytes as `ByteBuffer`
-    func payload(length: UInt32) -> ByteBuffer? {
-        return self.getSlice(at: FusionPacket.header.rawValue, length: Int(length) - FusionPacket.header.rawValue)
-    }
-    
     /// Decode a `FusionMessage` as `FusionFrame`
     ///
     /// - Parameters:
     ///   - opcode: the `FusionOpcode`
+    ///   - length: the length of the payload
     /// - Returns: the `FusionMessage`
-    func decode(with opcode: UInt8) -> FusionFrame? {
+    func decode(with opcode: UInt8, from length: UInt32) -> FusionFrame? {
+        guard let payload = self.getSlice(at: FusionPacket.header.rawValue, length: Int(length) - FusionPacket.header.rawValue) else { return nil }
         guard let opcode = FusionOpcode(rawValue: opcode) else { return nil }
-        switch opcode { case .string: return String.decode(from: self) case .data: return ByteBuffer.decode(from: self) case .uint16: return UInt16.decode(from: self) }
+        return switch opcode { case .string: String.decode(from: payload) case .data: ByteBuffer.decode(from: payload) case .uint16: UInt16.decode(from: payload) }
     }
 }

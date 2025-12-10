@@ -26,16 +26,16 @@ public enum MeasureBootstrapError: Error, Sendable {
 /// The `FusionFramerError` specific errors
 @frozen
 public enum FusionFramerError: Error, Sendable {
-    case parsingFailed
-    case readBufferOverflow
-    case writeBufferOverflow
-    case unexpectedOpcode
+    case inputBufferOverflow
+    case outputBufferOverflow
+    case loadOpcodeFailed
+    case decodeMessageFailed
     
     public var description: String {
         switch self {
-        case .parsingFailed: return "message parsing failed"
-        case .readBufferOverflow: return "read buffer overflow"
-        case .writeBufferOverflow: return "write buffer overflow"
-        case .unexpectedOpcode: return "unexpected opcode" }
+        case .inputBufferOverflow: "input buffer overflow occured while reading from the underlying socket"
+        case .outputBufferOverflow: "output buffer overflow occured while preparing message frame"
+        case .loadOpcodeFailed: "unable to load opcode, discard this frame (this should never happen!)"
+        case .decodeMessageFailed: "unable to decode message, discard this frame" }
     }
 }

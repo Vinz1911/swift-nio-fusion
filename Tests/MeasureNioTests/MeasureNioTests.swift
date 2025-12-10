@@ -12,9 +12,9 @@ struct MeasureNioTests {
         let messageRaw = ByteBuffer(bytes: [0x0, 0x1, 0x2, 0x3, 0x4])
         let messagePing = UInt16.max
         
-        var bufferText = try await FusionFramer.create(message: messageText)
-        var bufferRaw = try await FusionFramer.create(message: messageRaw)
-        var bufferPing = try await FusionFramer.create(message: messagePing)
+        let bufferText = try FusionFramer.create(message: messageText)
+        let bufferRaw = try FusionFramer.create(message: messageRaw)
+        let bufferPing = try FusionFramer.create(message: messagePing)
         
         buffer.writeImmutableBuffer(bufferText)
         buffer.writeImmutableBuffer(bufferRaw)

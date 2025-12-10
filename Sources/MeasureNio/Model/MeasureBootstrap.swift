@@ -12,7 +12,7 @@ import Logging
 
 struct MeasureBootstrap: MeasureBootstrapProtocol {
     private let host: String
-    private let port: Int
+    private let port: UInt16
     private let group: MultiThreadedEventLoopGroup
     private let tracker = MeasureTracker()
     
@@ -22,7 +22,7 @@ struct MeasureBootstrap: MeasureBootstrapProtocol {
     ///   - host: the host address as `String`
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
-    init(host: String, port: Int, group: MultiThreadedEventLoopGroup) throws {
+    init(host: String, port: UInt16, group: MultiThreadedEventLoopGroup) throws {
         if host.isEmpty { throw(MeasureBootstrapError.invalidHostName) }; if port == .zero { throw(MeasureBootstrapError.invalidPortNumber) }
         self.host = host; self.port = port; self.group = group
     }
@@ -37,7 +37,7 @@ struct MeasureBootstrap: MeasureBootstrapProtocol {
             .childChannelOption(.socketOption(.tcp_nodelay), value: 1)
             .childChannelOption(.maxMessagesPerRead, value: .messageMax)
         
-        let channel = try await bootstrap.bind(host: self.host, port: self.port) { channel in
+        let channel = try await bootstrap.bind(host: self.host, port: Int(self.port)) { channel in
             channel.eventLoop.makeCompletedFuture {
                 let timer = channel.eventLoop.scheduleTask(in: .seconds(.timeout)) { channel.close(promise: nil) }
                 channel.closeFuture.whenComplete { _ in timer.cancel() }
@@ -73,13 +73,9 @@ struct MeasureBootstrap: MeasureBootstrapProtocol {
     func send(_ message: FusionMessage, _ outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async {
         do {
             guard let message = message as? FusionFrame else { return }
-            let frame = try await FusionFramer.create(message: message)
+            let frame = try FusionFramer.create(message: message)
             try await outbound.write(frame)
-        } catch {
-            guard let error = error as? IOError else { return }
-            guard error.errnoCode != ECONNRESET, error.errnoCode != EPIPE, error.errnoCode != EBADF else { return }
-            Logger.shared.error("\(error)")
-        }
+        } catch { log(from: error) }
     }
 }
 
@@ -92,20 +88,24 @@ private extension MeasureBootstrap {
     ///   - channel: the `NIOAsyncChannel`
     ///   - completion: the parsed `FusionMessage` and `NIOAsyncChannelOutboundWriter`
     private func addChannel(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async {
+        let framer = FusionFramer()
+        defer { Task { await framer.clear() } }
         do {
-            let framer = FusionFramer()
-            defer { Task { await framer.clear() } }
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     let messages = try await framer.parse(data: buffer)
                     for message in messages { await completion(message, outbound) }
                 }
             }
-            channel.channel.flush()
-        } catch {
-            guard let error = error as? IOError else { return }
-            guard error.errnoCode != ECONNRESET, error.errnoCode != EPIPE, error.errnoCode != EBADF else { return }
-            Logger.shared.error("\(error)")
-        }
+        } catch { log(from: error) }
+    }
+    
+    /// Log channel `IOError`
+    ///
+    /// - Parameter error: the `Error`
+    private func log(from error: Error) {
+        guard let error = error as? IOError else { return }
+        guard error.errnoCode != ECONNRESET, error.errnoCode != EPIPE, error.errnoCode != EBADF else { return }
+        Logger.shared.error("\(error)")
     }
 }
