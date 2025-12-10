@@ -1,6 +1,6 @@
 //
 //  Extensions.swift
-//  MeasureNio
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 17.04.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
@@ -18,16 +18,16 @@ extension String {
     /// Prompt logo
     static let logo = #"""
     
-        _____   _______________     ______  ___                                      
-        ___  | / /___  _/_  __ \    ___   |/  /__________ ___________  _____________ 
-        __   |/ / __  / _  / / /    __  /|_/ /_  _ \  __ `/_  ___/  / / /_  ___/  _ \
-        _  /|  / __/ /  / /_/ /     _  /  / / /  __/ /_/ /_(__  )/ /_/ /_  /   /  __/
-        /_/ |_/  /___/  \____/      /_/  /_/  \___/\__,_/ /____/ \__,_/ /_/    \___/ 
-    +-----------------------------------------------------------------------------------+
-    | High-performance measurement engine server based on the Fusion Framing Protocol.  |
-    | Supports inbound and outbound channel speed measurement, including RTT.           |
-    | More information can be found at: https://weist.org                               |
-    +-----------------------------------------------------------------------------------+
+           _____   _______________     __________             _____              
+           ___  | / /___  _/_  __ \    ___  ____/___  ___________(_)____________ 
+           __   |/ / __  / _  / / /    __  /_   _  / / /_  ___/_  /_  __ \_  __ \
+           _  /|  / __/ /  / /_/ /     _  __/   / /_/ /_(__  )_  / / /_/ /  / / /
+           /_/ |_/  /___/  \____/      /_/      \__,_/ /____/ /_/  \____//_/ /_/ 
+    +----------------------------------------------------------------------------------+
+    | A high-performance, low-overhead protocol built on top of TCP.                   |
+    | Support for various types of high performance applications like data transfer.   |
+    | More information can be found at: https://weist.org                              |
+    +----------------------------------------------------------------------------------+
     """#
 }
 

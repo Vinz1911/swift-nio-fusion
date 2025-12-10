@@ -1,6 +1,6 @@
 //
-//  MeasureBootstrapProtocol.swift
-//  MeasureNio
+//  FusionBootstrapProtocol.swift
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 15.11.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
@@ -9,8 +9,8 @@
 import NIOCore
 import NIOPosix
 
-protocol MeasureBootstrapProtocol: Sendable {
-    /// Create instance of `MeasureBootstrap`
+protocol FusionBootstrapProtocol: Sendable {
+    /// Create instance of `FusionBootstrap`
     ///
     /// - Parameters:
     ///   - host: the host address as `String`
@@ -18,7 +18,7 @@ protocol MeasureBootstrapProtocol: Sendable {
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
     init(host: String, port: UInt16, group: MultiThreadedEventLoopGroup) throws
     
-    /// Starts the `MeasureBootstrap` and binds the server to port and address
+    /// Starts the `FusionBootstrap` and binds the server to port and address
     ///
     /// - Parameter completion: completion block with parsed `FusionMessage` and the outbound writer
     func run(_ completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws

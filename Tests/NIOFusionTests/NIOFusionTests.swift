@@ -1,9 +1,9 @@
 import Testing
 import NIOCore
-@testable import MeasureNio
+@testable import NIOFusion
 
-@Suite("Measure Nio Tests")
-struct MeasureNioTests {
+@Suite("NIO Fusion Tests")
+struct NIOFusionTests {
     @Test("Framer Parser")
     func parser() async throws {
         let framer = FusionFramer(); var buffer = ByteBuffer()

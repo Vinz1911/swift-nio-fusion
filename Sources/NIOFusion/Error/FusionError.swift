@@ -1,16 +1,16 @@
 //
-//  MeasureError.swift
-//  MeasureNio
+//  FusionError.swift
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 17.04.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
-// MARK: - Measure Bootstrap Error -
+// MARK: - Fusion Bootstrap Error -
 
-/// The `MeasureBootstrapError` specific errors
+/// The `FusionBootstrapError` specific errors
 @frozen
-public enum MeasureBootstrapError: Error, Sendable {
+public enum FusionBootstrapError: Error, Sendable {
     case invalidHostName
     case invalidPortNumber
     

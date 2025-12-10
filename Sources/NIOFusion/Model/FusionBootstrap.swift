@@ -1,6 +1,6 @@
 //
-//  MeasureBootstrap.swift
-//  MeasureNio
+//  FusionBootstrap.swift
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 13.04.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
@@ -10,24 +10,24 @@ import NIOCore
 import NIOPosix
 import Logging
 
-struct MeasureBootstrap: MeasureBootstrapProtocol {
+struct FusionBootstrap: FusionBootstrapProtocol {
     private let host: String
     private let port: UInt16
     private let group: MultiThreadedEventLoopGroup
-    private let tracker = MeasureTracker()
+    private let tracker = FusionTracker()
     
-    /// Create instance of `MeasureBootstrap`
+    /// Create instance of `FusionBootstrap`
     ///
     /// - Parameters:
     ///   - host: the host address as `String`
     ///   - port: the port number as `UInt16`
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
     init(host: String, port: UInt16, group: MultiThreadedEventLoopGroup) throws {
-        if host.isEmpty { throw(MeasureBootstrapError.invalidHostName) }; if port == .zero { throw(MeasureBootstrapError.invalidPortNumber) }
+        if host.isEmpty { throw(FusionBootstrapError.invalidHostName) }; if port == .zero { throw(FusionBootstrapError.invalidPortNumber) }
         self.host = host; self.port = port; self.group = group
     }
     
-    /// Starts the `MeasureBootstrap` and binds the server to port and address
+    /// Starts the `FusionBootstrap` and binds the server to port and address
     ///
     /// - Parameter completion: completion block with parsed `FusionMessage` and the outbound writer
     func run(_ completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws {
@@ -79,9 +79,9 @@ struct MeasureBootstrap: MeasureBootstrapProtocol {
     }
 }
 
-// MARK: - Private API -
+// MARK: - Private API Extension -
 
-private extension MeasureBootstrap {
+private extension FusionBootstrap {
     /// Add handler for each individual channel
     ///
     /// - Parameters:

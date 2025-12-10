@@ -1,6 +1,6 @@
 //
 //  FusionMessage.swift
-//  MeasureNio
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 13.04.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.

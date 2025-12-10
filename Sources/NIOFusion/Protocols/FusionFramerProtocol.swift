@@ -1,6 +1,6 @@
 //
 //  FusionFramerProtocol.swift
-//  MeasureNio
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 15.11.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.

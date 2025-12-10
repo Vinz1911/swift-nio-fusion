@@ -1,2 +1,3 @@
-# Measure Nio
-Bandwidth measurement server build on NIO framework  
+# NIO Fusion
+
+## Fusion Framing Protocol (FFP) - NIO Implementation

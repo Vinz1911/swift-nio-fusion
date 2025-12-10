@@ -1,6 +1,6 @@
 //
-//  MeasureTrackerProtocol.swift
-//  MeasureNio
+//  FusionTrackerProtocol.swift
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 15.11.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
@@ -8,8 +8,8 @@
 
 import Foundation
 
-protocol MeasureTrackerProtocol: Sendable {
-    /// Create instance of `MeasureTracker`
+protocol FusionTrackerProtocol: Sendable {
+    /// Create instance of `FusionTracker`
     ///
     /// - Parameter expiration: reset interval
     init(expiration: TimeInterval)

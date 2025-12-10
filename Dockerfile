@@ -7,9 +7,9 @@ COPY Package.swift ./
 COPY Sources ./Sources
 COPY Tests ./Tests
 
-# Build MeasureNio server
-RUN swift build -c release --product MeasureNio
+# Build NIOFusion server
+RUN swift build -c release --product NIOFusion
 
 # Run server on exposed port
 EXPOSE 7878
-CMD [".build/release/MeasureNio"]
+CMD [".build/release/NIOFusion"]

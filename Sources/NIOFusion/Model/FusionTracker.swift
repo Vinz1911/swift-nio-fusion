@@ -1,6 +1,6 @@
 //
-//  MeasureTracker.swift
-//  MeasureNio
+//  NIOFusionTracker.swift
+//  NIOFusion
 //
 //  Created by Vinzenz Weist on 12.11.25.
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
@@ -8,11 +8,11 @@
 
 import Foundation
 
-actor MeasureTracker: MeasureTrackerProtocol {
+actor FusionTracker: FusionTrackerProtocol {
     private var addresses: [String: Date] = [:]
     private let expiration: TimeInterval
     
-    /// Create instance of `MeasureTracker`
+    /// Create instance of `FusionTracker`
     ///
     /// - Parameter expiration: reset interval
     init(expiration: TimeInterval = 30) {
