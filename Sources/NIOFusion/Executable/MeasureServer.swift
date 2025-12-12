@@ -29,8 +29,7 @@ struct MeasureServer: Sendable {
         Logger.shared.info("System core count: \(System.coreCount)")
         Logger.shared.info("Mode: Measure")
         
-        Task(priority: .userInitiated) { for await result in bootstrap.receive() { await handler(result: result) } }
-        try await bootstrap.run()
+        try await bootstrap.run { result in await handler(result: result) }
     }
 }
 

@@ -15,7 +15,6 @@ struct FusionBootstrap: /*FusionBootstrapProtocol,*/ Sendable {
     private let port: UInt16
     private let group: MultiThreadedEventLoopGroup
     private let tracker = FusionTracker()
-    private var (stream, continuation) = AsyncStream.makeStream(of: FusionResult.self)
     
     /// Create instance of `FusionBootstrap`
     ///
@@ -30,7 +29,7 @@ struct FusionBootstrap: /*FusionBootstrapProtocol,*/ Sendable {
     /// Starts the `FusionBootstrap` and binds the server to port and address
     ///
     /// - Parameter completion: completion block with parsed `FusionMessage` and the outbound writer
-    func run() async throws {
+    func run(_ completion: @Sendable @escaping (FusionResult) async -> Void) async throws {
         let bootstrap = ServerBootstrap(group: self.group)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .serverChannelOption(.backlog, value: .backlogMax)
@@ -57,7 +56,7 @@ struct FusionBootstrap: /*FusionBootstrapProtocol,*/ Sendable {
                             Logger.shared.info("IP: \(address.ipAddress ?? "0.0.0.0"), Port: \(address.port ?? -1)")
                         }
                     }
-                    group.addTask { await addChannel(channel: channel) }
+                    group.addTask { await addChannel(channel: channel, completion) }
                 }
             }
         }
@@ -75,13 +74,6 @@ struct FusionBootstrap: /*FusionBootstrapProtocol,*/ Sendable {
             try await outbound.write(frame)
         } catch { log(from: error) }
     }
-    
-    /// Receive a continues stream of `FusionResult`s
-    ///
-    /// The stream contains the `FusionResult` and the outbound writer
-    func receive() -> AsyncStream<FusionResult> {
-        return stream
-    }
 }
 
 // MARK: - Private API Extension -
@@ -92,14 +84,14 @@ private extension FusionBootstrap {
     /// - Parameters:
     ///   - channel: the `NIOAsyncChannel`
     ///   - completion: the parsed `FusionMessage` and `NIOAsyncChannelOutboundWriter`
-    private func addChannel(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>) async -> Void {
+    private func addChannel(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>, _ completion: (FusionResult) async -> Void) async -> Void {
         let framer = FusionFramer()
         defer { Task { await framer.clear() } }
         do {
             try await channel.executeThenClose { inbound, outbound in
                 for try await buffer in inbound {
                     let messages = try await framer.parse(data: buffer)
-                    for message in messages { continuation.yield(.init(message: message, outbound: outbound)) }
+                    for message in messages { await completion(.init(message: message, outbound: outbound)) }
                 }
             }
         } catch { log(from: error) }
