@@ -8,6 +8,7 @@
 
 import Logging
 import NIOCore
+import NIOPosix
 
 // MARK: - String -
 
@@ -36,6 +37,25 @@ extension String {
 extension Logger {
     /// Singleton to access logger
     static let shared = Logger(label: .init())
+    
+    /// Log channel `IOError`
+    ///
+    /// - Parameter error: the `Error`
+    func outin(from error: Error) -> Void {
+        guard let error = error as? IOError else { return }
+        guard error.errnoCode != ECONNRESET, error.errnoCode != EPIPE, error.errnoCode != EBADF else { return }
+        Logger.shared.error("\(error)")
+    }
+}
+
+// MARK: - Endpoint -
+
+extension FusionEndpoint {
+    /// The localhost endpoint
+    static var localhost: Self { .init(host: "127.0.0.1", port: 7878) }
+    
+    /// The production endpoint
+    static var production: Self { .init(host: "0.0.0.0", port: 7878) }
 }
 
 // MARK: - Int -
@@ -57,8 +77,9 @@ extension UInt {
 
 extension UInt32 {
     /// The fusion frame payload length
-    var payload: Int {
-        Int(self) - FusionPacket.header.rawValue
+    var payload: Int? {
+        guard self >= FusionStatic.header.rawValue else { return nil }
+        return Int(self) - FusionStatic.header.rawValue
     }
 }
 
@@ -79,7 +100,7 @@ extension ByteBuffer {
     ///   - length: the length of the payload
     /// - Returns: the `FusionMessage`
     func decode(with opcode: UInt8, from length: UInt32) -> FusionFrame? {
-        guard let payload = self.getSlice(at: FusionPacket.header.rawValue, length: length.payload) else { return nil }
+        guard let length = length.payload, let payload = self.getSlice(at: FusionStatic.header.rawValue, length: length) else { return nil }
         return FusionOpcode(rawValue: opcode)?.type.decode(from: payload)
     }
 }

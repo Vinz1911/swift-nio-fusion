@@ -29,7 +29,7 @@ protocol FusionFrame: FusionMessage {
 /// Conformance to protocol `FusionFrame` and `FusionMessage`
 extension UInt16: FusionFrame {
     var opcode: UInt8 { FusionOpcode.uint16.rawValue }
-    var size: UInt64 { UInt64(self.encode.readableBytes + FusionPacket.header.rawValue) }
+    var size: UInt64 { UInt64(self.encode.readableBytes + FusionStatic.header.rawValue) }
     var encode: ByteBuffer { ByteBuffer(repeating: .zero, count: Int(self)) }
     static func decode(from payload: ByteBuffer) -> FusionFrame? { Self(payload.readableBytes) }
 }
@@ -37,15 +37,15 @@ extension UInt16: FusionFrame {
 /// Conformance to protocol `FusionFrame` and `FusionMessage`
 extension String: FusionFrame {
     var opcode: UInt8 { FusionOpcode.string.rawValue }
-    var size: UInt64 { UInt64(self.encode.readableBytes + FusionPacket.header.rawValue) }
+    var size: UInt64 { UInt64(self.encode.readableBytes + FusionStatic.header.rawValue) }
     var encode: ByteBuffer { ByteBuffer(string: self) }
-    static func decode(from payload: ByteBuffer) -> FusionFrame? { payload.getString(at: payload.readerIndex, length: payload.readableBytes) }
+    static func decode(from payload: ByteBuffer) -> FusionFrame? { try? payload.getUTF8ValidatedString(at: payload.readerIndex, length: payload.readableBytes) }
 }
 
 /// Conformance to protocol `FusionFrame` and `FusionMessage`
 extension ByteBuffer: FusionFrame {
     var opcode: UInt8 { FusionOpcode.data.rawValue }
-    var size: UInt64 { UInt64(self.encode.readableBytes + FusionPacket.header.rawValue) }
+    var size: UInt64 { UInt64(self.encode.readableBytes + FusionStatic.header.rawValue) }
     var encode: ByteBuffer { self }
     static func decode(from payload: ByteBuffer) -> FusionFrame? { payload }
 }

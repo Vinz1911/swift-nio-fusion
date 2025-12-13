@@ -41,11 +41,11 @@ protocol FusionFramerProtocol: Sendable {
     ///
     /// - Parameter message: generic type which conforms to `FusionMessage`
     /// - Returns: the message frame as `ByteBuffer`
-    static nonisolated func create<T: FusionFrame>(message: T) throws -> ByteBuffer
+    static nonisolated func create<T: FusionFrame>(message: T) throws(FusionFramerError) -> ByteBuffer
     
     /// Parse a `FusionMessage` conform frame
     ///
     /// - Parameter data: pointer to the `ByteBuffer` which holds the `FusionMessage`
     /// - Returns: a collection of `FusionMessage`s
-    func parse(data: ByteBuffer) async throws -> [FusionFrame]
+    func parse(data: ByteBuffer) async throws(FusionFramerError) -> [FusionFrame]
 }

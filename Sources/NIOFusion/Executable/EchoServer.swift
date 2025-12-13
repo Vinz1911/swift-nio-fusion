@@ -9,24 +9,26 @@
 import NIOCore
 import NIOPosix
 import Logging
-/*
+
 // @main << TODO: Enable -
 struct EchoServer: Sendable {
+    static let endpoint: FusionEndpoint = .localhost
+    static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+    static let bootstrap = FusionBootstrap(from: .localhost, group: group)
+    
     /// The `main` entry point.
     ///
     /// Start the `EchoServer` and receive data.
     static func main() async throws {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        let server = try FusionBootstrap(host: "127.0.0.1", port: 7878, group: group)
         
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
         Logger.shared.info("System core count: \(System.coreCount)")
-        Logger.shared.info("Mode: Echo")
+        Logger.shared.info("Echo Server")
+        Logger.shared.info("Listening on \(self.endpoint.host):\(self.endpoint.port)")
         
-        try await server.run() { await server.send(from: $0) }
+        Task { for await result in bootstrap.receive() { await bootstrap.send(result.message, result.outbound) } }
+        try await bootstrap.run()
     }
 }
-
-*/

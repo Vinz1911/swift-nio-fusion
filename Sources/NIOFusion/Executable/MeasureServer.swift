@@ -12,8 +12,9 @@ import Logging
 
 @main
 struct MeasureServer: Sendable {
+    static let endpoint: FusionEndpoint = .localhost
     static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    static let bootstrap = FusionBootstrap(host: "127.0.0.1", port: 7878, group: group)
+    static let bootstrap = FusionBootstrap(from: endpoint, group: group)
     
     /// The `main` entry point.
     ///
@@ -21,15 +22,17 @@ struct MeasureServer: Sendable {
     /// This is used as Bandwidth throughput server, it receives data or a requested amount of data
     /// and sends the appropriated value back to the client.
     static func main() async throws {
-        MallocAdapter.configure()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
         
         Logger.shared.notice(.init(stringLiteral: .logo))
         Logger.shared.info(.init(stringLiteral: .version))
         Logger.shared.info("System core count: \(System.coreCount)")
-        Logger.shared.info("Mode: Measure")
+        Logger.shared.info("Measure Server")
+        Logger.shared.info("Listening on \(self.endpoint.host):\(self.endpoint.port)")
         
-        try await bootstrap.run { result in await handler(result: result) }
+        MallocAdapter.configure()
+        Task { for await result in bootstrap.receive() { Task { await handler(result: result) } } }
+        try await bootstrap.run()
     }
 }
 

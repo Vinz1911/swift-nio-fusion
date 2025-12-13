@@ -10,7 +10,7 @@ import NIOCore
 
 // MARK: - Fusion Result -
 
-struct FusionResult: Sendable {
+struct FusionResult: FusionResultProtocol, Sendable {
     var message: FusionMessage
     var outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>
     
@@ -22,5 +22,22 @@ struct FusionResult: Sendable {
     init(message: FusionMessage, outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) {
         self.message = message
         self.outbound = outbound
+    }
+}
+
+// MARK: - Fusion Endpoint -
+
+struct FusionEndpoint: FusionEndpointProtocol, Sendable {
+    let host: String
+    let port: UInt16
+    
+    /// Create an Endpoint
+    ///
+    /// - Parameters:
+    ///   - host: the host as `String`
+    ///   - port: the port as `UInt16`
+    init(host: String, port: UInt16) {
+        self.host = host
+        self.port = port
     }
 }

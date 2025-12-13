@@ -13,20 +13,23 @@ protocol FusionBootstrapProtocol: Sendable {
     /// Create instance of `FusionBootstrap`
     ///
     /// - Parameters:
-    ///   - host: the host address as `String`
-    ///   - port: the port number as `UInt16`
+    ///   - endpoint: the `FusionEndpoint` to bind to
     ///   - group: the event group as `MultiThreadedEventLoopGroup`
-    init(host: String, port: UInt16, group: MultiThreadedEventLoopGroup) throws
-    
+    init(from endpoint: FusionEndpoint, group: MultiThreadedEventLoopGroup)
+
     /// Starts the `FusionBootstrap` and binds the server to port and address
     ///
-    /// - Parameter completion: completion block with parsed `FusionMessage` and the outbound writer
-    func run(_ completion: @escaping @Sendable (FusionMessage, NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void) async throws
-    
+    /// Invokes the individual channel listner
+    func run() async throws -> Void
+
+    /// Receive `FusionResult` from stream
+    ///
+    /// An continues `AsyncStream` returns `FusionResult`
+    func receive() -> AsyncStream<FusionResult>
     /// Send data on specific channel
     ///
     /// - Parameters:
     ///   - message: the `FusionMessage` to send
     ///   - outbound: the outbound channel `NIOAsyncChannelOutboundWriter`
-    func send(_ message: FusionMessage, _ outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async
+    func send(_ message: FusionMessage, _ outbound: NIOAsyncChannelOutboundWriter<ByteBuffer>) async -> Void
 }
