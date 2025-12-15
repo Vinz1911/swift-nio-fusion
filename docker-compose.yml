@@ -1,8 +1,0 @@
-services:
-  nio-server:
-    build: .
-    network_mode: host
-    restart: always
-    cap_add:
-      - NET_RAW
-      - NET_ADMIN
