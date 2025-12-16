@@ -61,8 +61,10 @@ extension ByteBuffer {
     /// Extract `UInt32` from payload
     ///
     /// - Returns: the extracted length as `UInt32
-    func length(at index: Int = .zero) -> UInt32? {
-        return self.getInteger(at: index + 1, endianness: .big, as: UInt32.self)
+    func length(at index: Int = .zero) throws(FusionFramerError) -> UInt32? {
+        guard self.readableBytes >= FusionStatic.header.rawValue else { return nil }
+        let length = self.getInteger(at: index + 1, endianness: .big, as: UInt32.self)
+        if length != .zero { return length } else { throw FusionFramerError.invalid }
     }
     
     /// Decode a `FusionMessage` as `FusionFrame`

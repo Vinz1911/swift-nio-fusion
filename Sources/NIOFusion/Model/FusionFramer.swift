@@ -35,7 +35,7 @@ actor FusionFramer: FusionFramerProtocol {
         var messages: [FusionFrame] = []; buffer.writeImmutableBuffer(data)
         guard buffer.readableBytes <= FusionStatic.total.rawValue else { throw .inbound }
         guard buffer.readableBytes >= FusionStatic.header.rawValue else { return .init() }
-        while let length = buffer.length(), buffer.readableBytes >= length && length != .zero {
+        while let length = try buffer.length(), buffer.readableBytes >= length && length != .zero {
             guard let opcode = buffer.getInteger(at: buffer.readerIndex, as: UInt8.self) else { throw .opcode }
             guard let message = buffer.decode(with: opcode, from: length) else { throw .decode }
             buffer.moveReaderIndex(forwardBy: Int(length)); buffer.discardReadBytes(); messages.append(message)
