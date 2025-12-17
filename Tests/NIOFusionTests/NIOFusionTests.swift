@@ -12,10 +12,11 @@ struct NIOFusionTests {
         let invalid = ByteBuffer(bytes: [0x1, 0x0, 0x0, 0x0, 0x6, 0xFF])
         let breakSync = ByteBuffer(bytes: [0x01, 0x00, 0x00, 0x00, 0x01, 0xAA, 0x02, 0x00, 0x00, 0x00, 0x01, 0xBB])
         let zeroLen = ByteBuffer(bytes: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        await #expect(throws: FusionFramerError.invalid) { await framer.clear(); let _ = try await framer.parse(data: zeroLen) }
-        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(data: invalid) }
-        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(data: malformed) }
-        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(data: breakSync) }
+        await #expect(throws: FusionFramerError.inbound) { await framer.clear(); let _ = try await framer.parse(slice: .init(repeating: .zero, count: Int(FusionSize.medium.rawValue)), size: .low) }
+        await #expect(throws: FusionFramerError.invalid) { await framer.clear(); let _ = try await framer.parse(slice: zeroLen) }
+        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(slice: invalid) }
+        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(slice: malformed) }
+        await #expect(throws: FusionFramerError.decode) { await framer.clear(); let _ = try await framer.parse(slice: breakSync) }
     }
     
     /// Create + parse with `FusionFramer`
@@ -29,7 +30,7 @@ struct NIOFusionTests {
         frames.writeImmutableBuffer(try FusionFramer.create(message: messages[1]))
         frames.writeImmutableBuffer(try FusionFramer.create(message: messages[2]))
         
-        for message in try await framer.parse(data: frames) { parsed.append(message) }
+        for message in try await framer.parse(slice: frames) { parsed.append(message) }
         
         if let message = messages[0] as? String, let parse = parsed[0] as? String { #expect(message == parse) }
         if let message = messages[1] as? ByteBuffer, let parse = parsed[1] as? ByteBuffer { #expect(message == parse) }
@@ -43,12 +44,12 @@ struct NIOFusionTests {
         let slices: [ByteBuffer] = [ByteBuffer(bytes: [1, 0, 0, 0]), ByteBuffer(bytes: [10, 80, 97]), ByteBuffer(bytes: [115, 115, 33])]
         
         frames.writeImmutableBuffer(slices[0])
-        for message in try await framer.parse(data: frames) { if let message = message as? String { messages.append(message) } }
+        for message in try await framer.parse(slice: frames) { if let message = message as? String { messages.append(message) } }
         
-        let _ = try await framer.parse(data: slices[1])
+        let _ = try await framer.parse(slice: slices[1])
         
         frames.writeImmutableBuffer(slices[2])
-        for message in try await framer.parse(data: slices[2]) { if let message = message as? String { messages.append(message) } }
+        for message in try await framer.parse(slice: slices[2]) { if let message = message as? String { messages.append(message) } }
         #expect(messages[0] == messages[1])
     }
     
@@ -58,13 +59,13 @@ struct NIOFusionTests {
         let framer = FusionFramer()
         do {
             let frame = try FusionFramer.create(message: ByteBuffer())
-            let parsed = try await framer.parse(data: frame)
+            let parsed = try await framer.parse(slice: frame)
             #expect(parsed.count == 1); #expect(parsed[0] is ByteBuffer); #expect((parsed[0] as? ByteBuffer)?.readableBytes == 0)
         }
         await framer.clear()
         do {
             let frame = try FusionFramer.create(message: "")
-            let parsed = try await framer.parse(data: frame)
+            let parsed = try await framer.parse(slice: frame)
             #expect(parsed.count == 1); #expect(parsed[0] is String); #expect((parsed[0] as? String) == "")
         }
     }

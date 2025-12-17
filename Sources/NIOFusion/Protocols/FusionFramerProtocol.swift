@@ -45,7 +45,9 @@ protocol FusionFramerProtocol: Sendable {
     
     /// Parse a `FusionMessage` conform frame
     ///
-    /// - Parameter data: pointer to the `ByteBuffer` which holds the `FusionMessage`
+    /// - Parameters:
+    ///   - slice: pointer to the `ByteBuffer` which holds the `FusionMessage`
+    ///   - size: the inbound buffer size limit from `FusionSize`
     /// - Returns: a collection of `FusionMessage`s
-    func parse(data: ByteBuffer) async throws(FusionFramerError) -> [FusionFrame]
+    func parse(slice: ByteBuffer, size: FusionSize) async throws(FusionFramerError) -> [FusionFrame]
 }

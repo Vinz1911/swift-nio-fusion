@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "fusion-nio",
+    name: "swift-nio-fusion",
     platforms: [
         .macOS(.v26)
     ],

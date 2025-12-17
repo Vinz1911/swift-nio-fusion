@@ -29,16 +29,19 @@ actor FusionFramer: FusionFramerProtocol {
     
     /// Parse a `FusionMessage` conform frame
     ///
-    /// - Parameter data: pointer to the `ByteBuffer` which holds the `FusionMessage`
+    /// - Parameters:
+    ///   - slice: pointer to the `ByteBuffer` which holds the `FusionMessage`
+    ///   - size: the inbound buffer size limit from `FusionSize`
     /// - Returns: a collection of `FusionMessage`s
-    func parse(data: ByteBuffer) async throws(FusionFramerError) -> [FusionFrame] {
-        var messages: [FusionFrame] = []; buffer.writeImmutableBuffer(data)
-        guard buffer.readableBytes <= FusionStatic.total.rawValue else { throw .inbound }
+    func parse(slice: ByteBuffer, size: FusionSize = .high) async throws(FusionFramerError) -> [FusionFrame] {
+        var messages: [FusionFrame] = []; buffer.writeImmutableBuffer(slice)
+        guard buffer.readableBytes <= FusionStatic.total.rawValue, buffer.readableBytes <= size.rawValue else { throw .inbound }
         guard buffer.readableBytes >= FusionStatic.header.rawValue else { return .init() }
         while let length = try buffer.length(), buffer.readableBytes >= length && length != .zero {
             guard let opcode = buffer.getInteger(at: buffer.readerIndex, as: UInt8.self) else { throw .opcode }
             guard let message = buffer.decode(with: opcode, from: length) else { throw .decode }
             buffer.moveReaderIndex(forwardBy: Int(length)); buffer.discardReadBytes(); messages.append(message)
-        }; return messages
+        }
+        return messages
     }
 }

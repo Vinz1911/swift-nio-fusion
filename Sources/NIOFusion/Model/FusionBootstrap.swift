@@ -118,7 +118,7 @@ private extension FusionBootstrap {
         try await channel.executeThenClose { inbound, outbound in
             for try await buffer in inbound {
                 guard channel.channel.isActive else { break }
-                let messages = try await framer.parse(data: buffer)
+                let messages = try await framer.parse(slice: buffer, size: parameters.size)
                 for message in messages { continuation.yield(.init(message: message, outbound: outbound)) }
             }
         }

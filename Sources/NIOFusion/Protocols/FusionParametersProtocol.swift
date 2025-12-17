@@ -21,6 +21,9 @@ public protocol FusionParametersProtocol: Sendable {
     /// The maximum messages per read
     var messages: UInt16 { get }
     
+    /// The `FusionSize` to limit frame size
+    var size: FusionSize { get }
+    
     /// Enable logging
     var logging: Bool { get }
     
@@ -31,6 +34,7 @@ public protocol FusionParametersProtocol: Sendable {
     ///   - backlog: maximum allowed connections
     ///   - nodelay: enable tcp nagle's algorithmus
     ///   - messages: maximum messages per read
+    ///   - size: the `FusionSize` to limit frame size
     ///   - logging: enable logging
-    init(timeout: UInt16?, backlog: UInt16, nodelay: Bool, messages: UInt16, logging: Bool)
+    init(timeout: UInt16?, backlog: UInt16, nodelay: Bool, messages: UInt16, size: FusionSize, logging: Bool)
 }

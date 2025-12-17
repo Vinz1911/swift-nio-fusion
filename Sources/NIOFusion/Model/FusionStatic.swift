@@ -8,6 +8,17 @@
 
 import NIOCore
 
+/// The `FusionSize` to limit frame size
+public enum FusionSize: Sendable {
+    case low
+    case medium
+    case high
+    case custom(UInt32)
+    
+    /// The `FusionSize` raw value
+    var rawValue: UInt32 { switch self { case .low: 0x3FFFFF case .medium: 0x7FFFFF case .high: 0xFFFFFF case .custom(let size): size } }
+}
+
 // MARK: - Message Flow Control -
 
 /// The `FusionStatic` for protocol constants
