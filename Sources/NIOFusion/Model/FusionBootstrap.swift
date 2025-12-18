@@ -14,6 +14,7 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
     private let endpoint: FusionEndpoint
     private let parameters: FusionParameters
     private let threads: Int
+    private var registry = FusionRegistry()
     private var (stream, continuation) = AsyncStream.makeStream(of: FusionResult.self)
     
     /// Create instance of `FusionBootstrap`
@@ -40,6 +41,16 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
             .childChannelOption(.maxMessagesPerRead, value: UInt(parameters.messages))
         
         try await binding(from: bootstrap)
+    }
+    
+    /// Send data on the current channel
+    ///
+    /// - Parameters:
+    ///   - id: the channel specific `UUID`
+    ///   - message: the `FusionMessage` to send
+    public func send(id: UUID, message: FusionMessage) async throws -> Void {
+        guard let outbound = await registry.fetch(from: id), let message = message as? FusionFrame else { return }
+        let frame = try FusionFramer.create(message: message, ceiling: parameters.ceiling); try await outbound.write(frame)
     }
     
     /// Receive `FusionResult` from stream
@@ -76,13 +87,14 @@ private extension FusionBootstrap {
     /// - Parameters:
     ///   - channel: the `NIOAsyncChannel`
     private func append(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>) async throws -> Void {
-        let framer = FusionFramer(), id = UUID()
-        let local = channel.channel.localAddress, remote = channel.channel.remoteAddress
+        let framer = FusionFramer(), id = UUID(), local = channel.channel.localAddress, remote = channel.channel.remoteAddress
+        defer { Task { await registry.remove(id: id); print("Count: \(await registry.storage.count)") } }
         try await channel.executeThenClose { inbound, outbound in
+            await registry.append(id: id, outbound: outbound)
             for try await buffer in inbound {
                 guard channel.channel.isActive else { break }
                 let messages = try await framer.parse(slice: buffer, ceiling: parameters.ceiling)
-                for message in messages { continuation.yield(.init(id: id, message: message, local: local, remote: remote, outbound: outbound, ceiling: parameters.ceiling)) }
+                for message in messages { continuation.yield(.init(id: id, message: message, local: local, remote: remote)) }
             }
         }
     }

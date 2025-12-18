@@ -21,10 +21,4 @@ public protocol FusionResultProtocol: Sendable {
     
     /// The remote `SocketAddress`
     var remote: SocketAddress? { get }
-    
-    /// Send data on the current channel
-    ///
-    /// - Parameters:
-    ///   - message: the `FusionMessage` to send
-    func send(_ message: FusionMessage) async throws -> Void
 }
