@@ -7,26 +7,24 @@
 //
 
 import NIOCore
-
-// MARK: - Fusion Result Protocol -
+import Foundation
 
 public protocol FusionResultProtocol: Sendable {
+    /// The uuid to identify `any Channel`
+    var id: UUID { get }
+    
     /// The `FusionMessage`
     var message: FusionMessage { get }
+    
+    /// The local `SocketAddress`
+    var local: SocketAddress? { get }
+    
+    /// The remote `SocketAddress`
+    var remote: SocketAddress? { get }
     
     /// Send data on the current channel
     ///
     /// - Parameters:
     ///   - message: the `FusionMessage` to send
     func send(_ message: FusionMessage) async throws -> Void
-}
-
-// MARK: - Fusion Endpoint Protocol -
-
-public protocol FusionEndpointProtocol: Sendable {
-    /// The host name
-    var host: String { get }
-    
-    /// The port address
-    var port: UInt16 { get }
 }

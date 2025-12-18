@@ -8,12 +8,10 @@
 
 import NIOCore
 import NIOPosix
-import Logging
 import Foundation
 
 public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
     private let endpoint: FusionEndpoint
-    private let tracker = FusionTracker()
     private let parameters: FusionParameters
     private let threads: Int
     private var (stream, continuation) = AsyncStream.makeStream(of: FusionResult.self)
@@ -34,7 +32,6 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
     ///
     /// Invokes the individual channel listner
     public func run() async throws -> Void {
-        LoggingSystem.bootstrap(StreamLogHandler.standardError)
         let group = MultiThreadedEventLoopGroup(numberOfThreads: threads)
         let bootstrap = ServerBootstrap(group: group)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
@@ -42,8 +39,7 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
             .childChannelOption(.socketOption(.tcp_nodelay), value: ChannelOptions.Types.SocketOption.Value(parameters.nodelay ? 1 : 0))
             .childChannelOption(.maxMessagesPerRead, value: UInt(parameters.messages))
         
-        let channel = try await binding(from: bootstrap)
-        try await listening(from: channel)
+        try await binding(from: bootstrap)
     }
     
     /// Receive `FusionResult` from stream
@@ -57,33 +53,21 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
 // MARK: - Private API Extension -
 
 private extension FusionBootstrap {
-    /// Create a binding and return the `NIOAsyncChannel`
+    /// Create a binding and start listening for any `Channel`
     ///
     /// - Parameter bootstrap: the `ServerBootstrap`
-    /// - Returns: the created `NIOAsyncChannel`
-    private func binding(from bootstrap: ServerBootstrap) async throws -> NIOAsyncChannel<NIOAsyncChannel<ByteBuffer, ByteBuffer>, Never> {
-        return try await bootstrap.bind(host: self.endpoint.host, port: Int(self.endpoint.port)) { channel in
+    private func binding(from bootstrap: ServerBootstrap) async throws -> Void {
+        let channel = try await bootstrap.bind(host: self.endpoint.host, port: Int(self.endpoint.port)) { channel in
             channel.eventLoop.makeCompletedFuture {
                 if let timeout = parameters.timeout {
                     let timer = channel.eventLoop.scheduleTask(in: .seconds(Int64(timeout))) { channel.close(promise: nil) }
                     channel.closeFuture.whenComplete { _ in timer.cancel() }
                 }
-                return try NIOAsyncChannel(wrappingChannelSynchronously: channel, configuration: NIOAsyncChannel.Configuration(inboundType: ByteBuffer.self, outboundType: ByteBuffer.self))
+                return try NIOAsyncChannel(wrappingChannelSynchronously: channel, configuration: .init(inboundType: ByteBuffer.self, outboundType: ByteBuffer.self))
             }
         }
-    }
-    
-    /// Start listening for incoming `NIOAsyncChannel`s
-    ///
-    /// - Parameter channel: the `NIOAsyncChannel`
-    private func listening(from channel: NIOAsyncChannel<NIOAsyncChannel<ByteBuffer, ByteBuffer>, Never>) async throws -> Void {
         try await withThrowingDiscardingTaskGroup { group in
-            try await channel.executeThenClose { inbound in
-                for try await channel in inbound {
-                    if parameters.tracking { await tracker.fetch(from: channel.channel) }
-                    group.addTask { do { try await append(channel: channel) } catch { Logger.shared.error("\(error)") } }
-                }
-            }
+            try await channel.executeThenClose { inbound in for try await channel in inbound { group.addTask { try? await append(channel: channel) } } }
         }
     }
     
@@ -93,12 +77,13 @@ private extension FusionBootstrap {
     ///   - channel: the `NIOAsyncChannel`
     ///   - completion: the parsed `FusionMessage` and `NIOAsyncChannelOutboundWriter`
     private func append(channel: NIOAsyncChannel<ByteBuffer, ByteBuffer>) async throws -> Void {
-        let framer = FusionFramer(); let id = UUID()
+        let framer = FusionFramer(), id = UUID()
+        let local = channel.channel.localAddress, remote = channel.channel.remoteAddress
         try await channel.executeThenClose { inbound, outbound in
             for try await buffer in inbound {
                 guard channel.channel.isActive else { break }
                 let messages = try await framer.parse(slice: buffer, ceiling: parameters.ceiling)
-                for message in messages { continuation.yield(.init(id: id, message: message, outbound: outbound, ceiling: parameters.ceiling)) }
+                for message in messages { continuation.yield(.init(id: id, message: message, local: local, remote: remote, outbound: outbound, ceiling: parameters.ceiling)) }
             }
         }
         await framer.clear()

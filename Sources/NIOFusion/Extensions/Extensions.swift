@@ -6,16 +6,8 @@
 //  Copyright © 2025 Vinzenz Weist. All rights reserved.
 //
 
-import Logging
 import NIOCore
 import NIOPosix
-
-// MARK: - Logger -
-
-extension Logger {
-    /// Access logger directly
-    static let shared = Logger(label: .init())
-}
 
 // MARK: - Int -
 

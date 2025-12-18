@@ -24,9 +24,6 @@ public protocol FusionParametersProtocol: Sendable {
     /// The `FusionCeiling` to limit frame size
     var ceiling: FusionCeiling { get }
     
-    /// Enable logging
-    var tracking: Bool { get }
-    
     /// Configurable `FusionParameters` for `FusionBootstrap`
     ///
     /// - Parameters:
@@ -35,6 +32,5 @@ public protocol FusionParametersProtocol: Sendable {
     ///   - nodelay: enable tcp nagle's algorithmus
     ///   - messages: maximum messages per read
     ///   - ceiling: the `FusionCeiling` to limit frame size
-    ///   - tracking: enable IP-Address tracking
-    init(timeout: UInt16?, backlog: UInt16, nodelay: Bool, messages: UInt16, ceiling: FusionCeiling, tracking: Bool)
+    init(timeout: UInt16?, backlog: UInt16, nodelay: Bool, messages: UInt16, ceiling: FusionCeiling)
 }
