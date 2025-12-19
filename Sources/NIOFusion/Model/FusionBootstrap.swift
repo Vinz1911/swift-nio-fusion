@@ -77,16 +77,11 @@ private extension FusionBootstrap {
     private func binding(from bootstrap: ServerBootstrap) async throws -> Void {
         let channel = try await bootstrap.bind(host: self.endpoint.host, port: Int(self.endpoint.port)) { channel in
             channel.eventLoop.makeCompletedFuture {
-                if let timeout = parameters.timeout {
-                    let timer = channel.eventLoop.scheduleTask(in: .seconds(Int64(timeout))) { channel.close(promise: nil) }
-                    channel.closeFuture.whenComplete { _ in timer.cancel() }
-                }
+                channel.timeout(after: parameters.timeout)
                 return try NIOAsyncChannel(wrappingChannelSynchronously: channel, configuration: .init(inboundType: ByteBuffer.self, outboundType: ByteBuffer.self))
             }
         }
-        try await withThrowingDiscardingTaskGroup { group in
-            try await channel.executeThenClose { inbound in for try await channel in inbound { group.addTask { try? await append(channel: channel) } } }
-        }
+        try await withThrowingDiscardingTaskGroup { group in try await channel.executeThenClose { for try await channel in $0 { group.addTask { try? await append(channel: channel) } } } }
     }
     
     /// Add handler for each individual channel
@@ -100,8 +95,7 @@ private extension FusionBootstrap {
             await registry.append(id: id, outbound: outbound)
             for try await buffer in inbound {
                 guard channel.channel.isActive else { break }
-                let messages = try await framer.parse(slice: buffer, ceiling: parameters.ceiling)
-                for message in messages { continuation.yield(.init(id: id, message: message, local: local, remote: remote)) }
+                for message in try await framer.parse(slice: buffer, ceiling: parameters.ceiling) { continuation.yield(.init(id: id, message: message, local: local, remote: remote)) }
             }
         }
     }

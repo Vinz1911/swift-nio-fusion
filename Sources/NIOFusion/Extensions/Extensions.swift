@@ -9,6 +9,19 @@
 import NIOCore
 import NIOPosix
 
+// MARK: - Channel -
+
+extension Channel {
+    /// A timeout after a channel gets kicked
+    ///
+    /// - Parameter timeout: the timeout as `UInt16`
+    func timeout(after timeout: UInt16?) -> Void {
+        guard let timeout else { return }
+        let timer = self.eventLoop.scheduleTask(in: .seconds(Int64(timeout))) { self.close(promise: nil) }
+        self.closeFuture.whenComplete { _ in timer.cancel() }
+    }
+}
+
 // MARK: - Int -
 
 extension UInt32 {
