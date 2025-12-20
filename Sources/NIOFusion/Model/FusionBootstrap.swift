@@ -15,7 +15,7 @@ public struct FusionBootstrap: FusionBootstrapProtocol, Sendable {
     private let parameters: FusionParameters
     private let threads: Int
     private var registry = FusionRegistry()
-    private var (stream, continuation) = AsyncStream.makeStream(of: FusionResult.self)
+    private var (stream, emitter) = AsyncStream.makeStream(of: FusionResult.self)
     
     /// Create instance of `FusionBootstrap`
     ///
@@ -95,7 +95,7 @@ private extension FusionBootstrap {
             await registry.append(id: id, outbound: outbound)
             for try await buffer in inbound {
                 guard channel.channel.isActive else { break }
-                for message in try await framer.parse(slice: buffer, ceiling: parameters.ceiling) { continuation.yield(.init(id: id, message: message, local: local, remote: remote)) }
+                for message in try await framer.parse(slice: buffer, ceiling: parameters.ceiling) { emitter.yield(.init(id: id, message: message, local: local, remote: remote)) }
             }
         }
     }

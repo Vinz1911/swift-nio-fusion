@@ -37,7 +37,7 @@ let bootstrap = FusionBootstrap(from: .init(host: "0.0.0.0", port: 7878))
 // ...
 ```
 
-## Run Bootstrap:
+## Bind Bootstrap:
 ```swift
 // Import the Framework
 import NIOFusion
@@ -49,10 +49,10 @@ let bootstrap = FusionBootstrap(from: .init(host: "0.0.0.0", port: 7878))
 Task {
     for try await result in bootstrap.receive() {
         // Handle `FusionResult`, simple echo server
-        await bootstrap.send(result.message, result.outbound)
+        try await bootstrap.send(id: result.id, message: result.message)
     }
 }
 
-// start bootstrap
-try await bootstrap.run()
+// bind bootstrap
+try await bootstrap.bind()
 ```
